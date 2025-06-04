@@ -41,8 +41,7 @@ pub extern crate env_logger;
 
 extern crate log;
 
-use std::fmt;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::fmt::Arguments;
 
 use env_logger::{
     fmt::style::{AnsiColor, Style},
@@ -171,24 +170,20 @@ pub fn formatted_builder() -> Builder {
         let level_value = level_value(&level);
 
         let target = record.target();
-        let max_width = max_target_width(target);
-
-        let target = Padded {
-            value: target,
-            width: max_width,
-        };
         let target_style = Style::new().bold();
 
         writeln!(
             f,
-            " {}{}{} {}{}{} > {}",
+            " {}{}{} {}{}{} \n{}{}{}",
             level_style.render(),
             level_value,
             level_style.render_reset(),
             target_style.render(),
             target,
             target_style.render_reset(),
-            record.args(),
+            level_style.render(),
+            format_record_args(record.args()),
+            level_style.render_reset(),
         )
     });
 
@@ -205,24 +200,19 @@ pub fn formatted_timed_builder() -> Builder {
 
     builder.format(|f, record| {
         use std::io::Write;
-        let target = record.target();
-        let max_width = max_target_width(target);
 
         let level = record.level();
         let level_style = level_color(&level);
         let level_value = level_value(&level);
 
-        let target = Padded {
-            value: target,
-            width: max_width,
-        };
+        let target = record.target();
         let target_style = Style::new().bold();
 
         let time = f.timestamp_millis();
 
         writeln!(
             f,
-            " {} {}{}{} {}{}{} > {}",
+            " {} {}{}{} {}{}{} \n{}{}{}",
             time,
             level_style.render(),
             level_value,
@@ -230,34 +220,13 @@ pub fn formatted_timed_builder() -> Builder {
             target_style.render(),
             target,
             target_style.render_reset(),
-            record.args(),
+            level_style.render(),
+            format_record_args(record.args()),
+            level_style.render_reset(),
         )
     });
 
     builder
-}
-
-struct Padded<T> {
-    value: T,
-    width: usize,
-}
-
-impl<T: fmt::Display> fmt::Display for Padded<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{: <width$}", self.value, width = self.width)
-    }
-}
-
-static MAX_MODULE_WIDTH: AtomicUsize = AtomicUsize::new(0);
-
-fn max_target_width(target: &str) -> usize {
-    let max_width = MAX_MODULE_WIDTH.load(Ordering::Relaxed);
-    if max_width < target.len() {
-        MAX_MODULE_WIDTH.store(target.len(), Ordering::Relaxed);
-        target.len()
-    } else {
-        max_width
-    }
 }
 
 fn level_color(level: &Level) -> Style {
@@ -278,4 +247,17 @@ fn level_value(level: &Level) -> &'static str {
         Level::Warn => "WARN ",
         Level::Error => "ERROR",
     }
+}
+
+fn format_record_args(args: &Arguments) -> String {
+    let formatted = format!("{}", args);
+
+    // Add 4 spaces to each line
+    let indented = formatted
+        .lines()
+        .map(|line| format!("    {}", line))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    indented
 }

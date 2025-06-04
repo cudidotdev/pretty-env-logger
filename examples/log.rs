@@ -17,7 +17,7 @@ fn main() {
     }
 
     self::nested::deep();
-    debug!("deboogging");
+    debug!("{:#?}", vec![1, 2, 3]);
     info!("such information");
     warn!("o_O");
     error!("boom");
