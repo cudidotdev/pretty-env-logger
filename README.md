@@ -24,14 +24,19 @@ pretty_env_logger = "0.4"
 Add some usage to your application:
 
 ```rust
-extern crate pretty_env_logger;
-#[macro_use] extern crate log;
-
 fn main() {
     pretty_env_logger::init();
+
+    if !log_enabled!(log::Level::Trace) {
+        eprintln!("To see the full demo, try setting `RUST_LOG=log=trace`.");
+        return;
+    }
+
+    self::nested::deep();
+    debug!("vector: {:#?}", vec![1, 2, 3]);
     info!("such information");
     warn!("o_O");
-    error!("much error");
+    error!("boom");
 }
 ```
 
