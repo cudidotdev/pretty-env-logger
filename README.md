@@ -13,7 +13,7 @@ Add the dependency to your `Cargo.toml`:
 ```toml
 [dependencies]
 log = "0.4"
-pretty_env_logger = "0.4"
+pretty_env_logger = { git = "https://github.com/cudidotdev/pretty-env-logger.git", tag = "0.1.0" }
 ```
 
 Add some usage to your application:
